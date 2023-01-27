@@ -28,7 +28,7 @@ let socketToRoom = {};
 io.on('error', e => console.log(`error... ${e}`))
 
 // 연결
-io.on('connection', (socket) => {
+io.on('connection', (socket) => {   // 연결이 들어오면 실행되는 event (socket 변수에는 실행 시점에 연결한 상대화 연결된 소켓의 객체가 들어있다.)
     console.log(`connected... socket id: [ ${socket.id} ]`);
 
     socket.on('join_room', (data) => {
@@ -36,8 +36,10 @@ io.on('connection', (socket) => {
         // 생성된 users 중 해당 roomNo 가 존재하면?
         if(roomUsers.members.length !== 0) {
             // room 에 2 명 초과로 접속 시도 시
+            console.log('room memebers length: '+roomUsers.members.length)
             if(roomUsers.members.length === 2) {
-                socket.to(socket.id).emit('room_full');
+                console.log("여기 되면 ?")
+                socket.emit('room_full', data.roomNo + 'Room No.');
                 return;
             }
 
@@ -68,26 +70,27 @@ io.on('connection', (socket) => {
         // 본인에게 접속한 "나" 빼고 room 안에 있는 user 정보를 보냄
         // 새로 접속하는 user 가 이미 방에 있는 user 에게 offer(signal) 을 보내기 위해서
         console.log(`thisRoomUser : ${thisRoomUser.toString()}`)
-        socket.broadcast.emit("thisRoomUser", thisRoomUser);
+        // socket.broadcast.emit("thisRoomUser", thisRoomUser);
+        socket.to(data.roomNo).emit("thisRoomUser", thisRoomUser);
     });
 
     // 다른 user 에게 offer 를 보냄 (자신의 RTCSessionDescription)
     socket.on("offer", sdp => {
         console.log(`offer: ${socket.id}`);
         //  broadcast 를 통해 전달
-        socket.broadcast.emit('getOffer', sdp);
+        socket.to(roomUsers.roomNo).emit('getOffer', sdp);
     });
 
     // offer 를 보낸 user 에게 answer 를 보냄 (자신의 RTCSessionDescription)
     socket.on('answer', sdp => {
         console.log(`answer: ${socket.id}`);
-        socket.broadcast.emit('getAnswer', sdp);
+        socket.to(roomUsers.roomNo).emit('getAnswer', sdp);
     });
 
     // 자신의 ICECandidate 정보를 signal (offer 또는 answer 을) 주고받은 상대에게 전달
     socket.on('candidate', candidate => {
         console.log(`candidate: ${socket.id}`);
-        socket.broadcast.emit('getCandidate', candidate);
+        socket.to(roomUsers.roomNo).emit('getCandidate', candidate);
     });
 
     // 나가기 버튼 눌렀을 때
@@ -99,7 +102,7 @@ io.on('connection', (socket) => {
             roomUsers.members = roomUsers.members.filter(m => m.username === joinRoomInfo.username);
 
             // socket.broadcast.emit("user_exit");
-            socket.broadcast.to(roomUsers.roomNo).emit("user_exit");
+            socket.to(roomUsers.roomNo).emit("user_exit");
             console.log(`현재 [${roomUsers.roomNo}] user: ${roomUsers.members}`);
         } else {    // 1명 있었던 상황이면 방을 없앤다.
             // roomUser 제거
@@ -134,7 +137,7 @@ io.on('connection', (socket) => {
         }
 
         // 어떤 user 가 나갔는지 room 의 다른 user 에게 통보
-        socket.broadcast.to(roomUsers.roomNo).emit("user_exit", socketToRoom[socket.id]);
+        socket.to(roomUsers.roomNo).emit("user_exit", socketToRoom[socket.id]);
         console.log(`현재 [${roomUsers.roomNo}] user: ${roomUsers.members}`);
     });
 });

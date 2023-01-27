@@ -1,13 +1,15 @@
-import React, {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Link, useLocation} from "react-router-dom";
 import io, {Socket} from "socket.io-client";
 import JoinRoomInfo from "../JoinRoom";
+import Loading from "./Loading";
 
 const SERVER_URL = "http://localhost:3002";
 
 export default function Room(): React.ReactElement {
     const location = useLocation();
     const joinRoomInfo = location.state.joinRoomInfo;
+    const [isLoading, setIsLoading] = useState(false);
 
     const socketRef = useRef<Socket>();                                  // PTCPeerConnection
     const rtcPeerConnectRef = useRef<RTCPeerConnection>();               // Signaling Server 와 통신할 Socket
@@ -26,6 +28,7 @@ export default function Room(): React.ReactElement {
             video: true,
             audio: true
         }).then((stream) => {
+            setIsLoading(true);
             /* use the stream */
             if (localVideoRef.current) localVideoRef.current.srcObject = stream
             if (!(rtcPeerConnectRef.current && socketRef.current)) return;
@@ -70,6 +73,12 @@ export default function Room(): React.ReactElement {
             // 왜냐하면 순서를 어기면 offer or answer 을 주고받을 때 RTCPeerConnection 에 video, audio track 에 대한 정보가 담겨있기에
             // 순서를 어기면 상대방의 MediaStream 을 받을 수 없음.
             socketRef.current!.emit('join_room', joinRoomInfo);
+            setIsLoading(false);
+            // socketRef.current?.on('room_full', (message) => {
+            //     console.log(">>>>>>>>>>>>")
+            //     console.log(message);
+            //
+            // });
 
         }).catch((e) => {
             /* handle the error */
@@ -117,7 +126,16 @@ export default function Room(): React.ReactElement {
             rtcPeerConnectRef.current.addIceCandidate(new RTCIceCandidate(candidate)).then(() => console.log('candidate add success'));
         });
 
-        setVideoTracks().then(() => console.log('setVideoTracks ...')).catch(reason => console.log("아 안되는 이유가 뭐야"));
+        socketRef.current?.on('room_full', (message) => {
+            console.log(">>>>>>>>>>>>")
+            console.log(message);
+            alert(message);
+        });
+
+        setVideoTracks().then(() => {
+            console.log('setVideoTracks ...')
+
+        }).catch(reason => console.log("아 안되는 이유가 뭐야"));
 
 
         // socketRef.current!.on('user_exit', socketId => {
@@ -180,10 +198,9 @@ export default function Room(): React.ReactElement {
         if (rtcPeerConnectRef.current) {
             rtcPeerConnectRef.current.close();
         }
-
     }
 
-    return (
+    return isLoading ? <Loading /> : (
         <div style={{textAlign: "center"}}>
             <Link to={"/"}>
                 <button style={{width: '30'}} onClick={onClickHandler}>나가기</button>
