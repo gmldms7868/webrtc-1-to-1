@@ -4,7 +4,7 @@ import io, {Socket} from "socket.io-client";
 import JoinRoomInfo from "../JoinRoom";
 import Loading from "./Loading";
 
-const SERVER_URL = "http://localhost:3002";
+const SERVER_URL = "http://3.36.68.140:3002";
 
 export default function Room(): React.ReactElement {
     const location = useLocation();
