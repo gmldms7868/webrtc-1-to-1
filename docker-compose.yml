@@ -3,9 +3,9 @@ services:
   server:
     build: .
     environment:
-      - PORT=3002
+      - PORT=443
     ports:
-      - "3002:3002"
+      - "443:443"
     networks:
       - docker-net
   web:
