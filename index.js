@@ -2,18 +2,34 @@
 const express = require('express');
 const app = express();
 const http = require('http');
-const server = http.createServer(app);
+const https = require('https');
+const httpServer = http.createServer(app);
 const {Server} = require("socket.io");
+const fs =  require('fs');
 
-const io = new Server(server, {
+const option = {
+    key: fs.readFileSync('fake-keys/key.pem'),
+    cert: fs.readFileSync('fake-keys/cert.pem')
+}
+const httpsServer = https.createServer(option, app);
+
+// const io = new Server(httpServer, {
+//     cors: {
+//         origin: "*",
+//         methods: ["GET", "POST"]
+//     }
+// });
+
+const io = new Server(httpsServer, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
     }
-});
+})
 console.log(io.path());
 
-const PORT = 3002;
+const HTTP_PORT = 3002;
+const HTTPS_PORT = 443;
 
 let roomUsers = {
     roomNo: "",
@@ -142,4 +158,5 @@ io.on('connection', (socket) => {   // 연결이 들어오면 실행되는 event
     });
 });
 
-server.listen(PORT, () => console.log(`server running on ${PORT}`));
+httpServer.listen(HTTP_PORT, () => console.log(`server running on ${HTTP_PORT}`));
+httpsServer.listen(HTTPS_PORT, () => console.log(`https servers running on ${HTTPS_PORT}`));
