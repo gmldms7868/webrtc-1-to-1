@@ -28,8 +28,8 @@ const io = new Server(httpsServer, {
 })
 console.log(io.path());
 
-const HTTP_PORT = 3002;
-const HTTPS_PORT = 443;
+// const HTTP_PORT = 3002;
+const HTTPS_PORT = 3002;
 
 let roomUsers = {
     roomNo: "",
@@ -158,5 +158,5 @@ io.on('connection', (socket) => {   // 연결이 들어오면 실행되는 event
     });
 });
 
-httpServer.listen(HTTP_PORT, () => console.log(`server running on ${HTTP_PORT}`));
+// httpServer.listen(HTTP_PORT, () => console.log(`server running on ${HTTP_PORT}`));
 httpsServer.listen(HTTPS_PORT, () => console.log(`https servers running on ${HTTPS_PORT}`));

@@ -5,7 +5,7 @@ import JoinRoomInfo from "../JoinRoom";
 import Loading from "./Loading";
 
 // const SERVER_URL = "http://3.39.209.247:3002";
-const SERVER_URL = "https://3.39.209.247:443";
+const SERVER_URL = "https://3.39.209.247:3002";
 
 export default function Room(): React.ReactElement {
     const location = useLocation();
